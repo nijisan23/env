@@ -1,19 +1,25 @@
 package com.briup.server;
 
-import javax.sql.DataSource;
+import com.briup.smart.env.Configuration;
+import com.briup.smart.env.Impl.ConfigurationImpl;
+import com.briup.smart.env.server.Server;
+import com.briup.smart.env.support.ConfigurationAware;
+import com.briup.smart.env.util.Log;
 
-public class ServerMain {
-    public static void main(String[] args) {
-        System.out.println("服务器开启");
-        ServerImpl server = new ServerImpl();
+
+public class ServerMain  {
+    public static void main(String[] args) throws Exception {
+        Server server =  ConfigurationImpl.getInstance().getServer();
+        Log log = ConfigurationImpl.getInstance().getLogger();
+        log.info("服务器开启");
         try {
             server.receive();
-            System.out.println("服务器接收");
+            log.info("服务器接收");
             server.shutdown();
+            log.info("服务器关闭");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        System.out.println("接收完毕");
-
+        log.info("接收完毕");
     }
 }

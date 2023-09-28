@@ -13,78 +13,107 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
-import org.junit.Test;
 
-import java.io.File;
+
+
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 public class ConfigurationImpl implements Configuration {
-    Map<String,Object> map=new HashMap<>();
+    Map<String, Object> map = new HashMap<>();
+    private static final ConfigurationImpl configuration = new ConfigurationImpl();
+    private final Properties properties = new Properties();
 
-    private ConfigurationImpl() throws Exception {
-        String file="src/main/resources/conf.xml";
+
+    private ConfigurationImpl() {
+        InputStream in = ConfigurationImpl.class.getClassLoader().getResourceAsStream("conf.xml");
+
         SAXReader saxReader = new SAXReader();
-        Document read = saxReader.read(file);
+        Document read = null;
+        try {
+            read = saxReader.read(in);
+        } catch (DocumentException e) {
+            throw new RuntimeException(e);
+        }
         Element root = read.getRootElement();
 
         List<Element> elements = root.elements();
         for (Element element : elements) {
-            Class<?> aClass = Class.forName(element.attributeValue("class"));
-            Object o = aClass.newInstance();
-            if (o instanceof PropertiesAware){
+            Class<?> aClass = null;
+            try {
+                aClass = Class.forName(element.attributeValue("class"));
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+            Object o = null;
+            try {
+                o = aClass.newInstance();
+            } catch (InstantiationException e) {
+                throw new RuntimeException(e);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+            if (o instanceof PropertiesAware) {
                 PropertiesAware o1 = (PropertiesAware) o;
                 List<Element> elements1 = element.elements();
-                Properties properties = new Properties();
                 for (Element o2 : elements1) {
-                    properties.setProperty(o2.getName(),o2.getText());
+                    properties.setProperty(o2.getName(), o2.getText());
                 }
-                o1.init(properties);
+                try {
+                    o1.init(properties);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
-            if (o instanceof ConfigurationAware){
+            if (o instanceof ConfigurationAware) {
                 ConfigurationAware o1 = (ConfigurationAware) o;
-                o1.setConfiguration(this);
+                try {
+                    o1.setConfiguration(this);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
-        map.put(element.getName(),o);
+            map.put(element.getName(), o);
 
         }
     }
 
 
-    public static Configuration getInstance() throws Exception {
-        return new ConfigurationImpl();
+    public static Configuration getInstance() {
+        return configuration;
     }
 
 
     @Override
     public Log getLogger() throws Exception {
-        return (Log)map.get("logger");
+        return (Log) map.get("logger");
     }
 
     @Override
     public Server getServer() throws Exception {
-        return (Server)map.get("server");
+        return (Server) map.get("server");
     }
 
     @Override
     public Client getClient() throws Exception {
-        return (Client)map.get("client");
+        return (Client) map.get("client");
     }
 
     @Override
     public DBStore getDbStore() throws Exception {
-        return (DBStore)map.get("dbStore");
+        return (DBStore) map.get("dbStore");
     }
 
     @Override
     public Gather getGather() throws Exception {
-        return (Gather)map.get("gather");
+        return (Gather) map.get("gather");
     }
 
     @Override
     public Backup getBackup() throws Exception {
-        return (Backup)map.get("backup");
+        return (Backup) map.get("backup");
     }
 }

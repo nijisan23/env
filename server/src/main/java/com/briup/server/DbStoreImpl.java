@@ -2,8 +2,12 @@ package com.briup.server;
 
 
 import com.briup.server.util.JDBCUtil;
+import com.briup.smart.env.Configuration;
 import com.briup.smart.env.entity.Environment;
 import com.briup.smart.env.server.DBStore;
+import com.briup.smart.env.support.ConfigurationAware;
+import com.briup.smart.env.support.PropertiesAware;
+import com.briup.smart.env.util.Log;
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -11,9 +15,23 @@ import java.sql.PreparedStatement;
 
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Properties;
 
 
-public class DbStoreImpl implements DBStore {
+public class DbStoreImpl implements DBStore, ConfigurationAware, PropertiesAware {
+    // 维护日志对象
+    private Log log;
+    // 定义一个批处理的量
+//    private int batchSize;
+    @Override
+    public void setConfiguration(Configuration configuration) throws Exception {
+        log = configuration.getLogger();
+    }
+
+    @Override
+    public void init(Properties properties) throws Exception {
+//        batchSize = Integer.parseInt(properties.getProperty("batch-size"));
+    }
     @Override
     public void saveDB(Collection<Environment> collection) throws Exception {
         // 获取jdbc连接对象

@@ -1,31 +1,36 @@
 package com.briup.client;
 
 import com.briup.smart.env.Configuration;
+import com.briup.smart.env.Impl.ConfigurationImpl;
+import com.briup.smart.env.client.Client;
 import com.briup.smart.env.client.Gather;
 import com.briup.smart.env.entity.Environment;
 import com.briup.smart.env.support.ConfigurationAware;
+import com.briup.smart.env.util.Log;
 
 import java.util.Collection;
 
-public class ClientMain implements ConfigurationAware {
-    static ClientImpl client;
-    static GatherImpl gather;
-    @Override
-    public void setConfiguration(Configuration configuration) throws Exception {
-        client = (ClientImpl) configuration.getClient();
-        gather = (GatherImpl) configuration.getGather();
-    }
-    public static void main(String[] args) {
+public class ClientMain {
+    private static ClientImpl client;
+    private static GatherImpl gather;
+    private static Log log;
 
-        System.out.println("客户端开启");
+
+    public static void main(String[] args) throws Exception {
+        Configuration instance = ConfigurationImpl.getInstance();
+        Client client =  instance.getClient();
+        Gather gather = instance.getGather();
+        Log log = instance.getLogger();
+        log.info("客户端开启");
+        Collection<Environment> c = null;
         try {
-            Collection<Environment> c = gather.gather();
+            c = gather.gather();
             client.send(c);
-            System.out.println("客户端发送");
+            log.info("客户端发送");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        System.out.println("发送完毕");
+        log.info("发送完毕");
     }
 
 
